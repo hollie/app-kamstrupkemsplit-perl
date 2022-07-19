@@ -1,6 +1,8 @@
 package App::KamstrupKemSplit;
 
-#VERSION
+# VERSION
+# ABSTRACT: Helper functions for the Kamstrup KEM file splitter application
+
 use Modern::Perl;
 use Log::Log4perl qw(:easy);
 use Text::CSV;
@@ -9,8 +11,17 @@ use XML::Simple;
 use Crypt::Rijndael;
 use MIME::Base64;
 use Exporter qw(import);
-our @EXPORT = qw(split_order read_config unzip_kem decode_kem parse_xml_string_to_data);
+our @EXPORT = qw(split_order read_config unzip_kem decode_kem parse_xml_string_to_data write_xml_output);
 
+=head1 unzip_kem
+
+Extracts the KEM file from the archive file delivered by Kamstrup.
+Do not forget to delete the file after processing.
+
+Takes the archive file name as input.
+Returns the filename.
+
+=cut
 sub unzip_kem {
 	my $input_file = shift();
 
@@ -31,9 +42,16 @@ sub unzip_kem {
 	return $filename;
 }
 
+=head1 decode_kem
+
+Decode an encrypted KEM file, requires the input filename and the encryption key.
+
+Returns the decrypted XML contents of the KEM file as string.
+=cut
 sub decode_kem {
 	my $input_file = shift();
 	my $key        = shift();
+	
 	my $kem_xml    = XMLin($input_file);
 	DEBUG "Decoding encrypted section from XML with key '$key'";
 	my $data    = decode_base64( $kem_xml->{CipherData}->{CipherValue} );
@@ -52,10 +70,21 @@ sub decode_kem {
 	return $plain_xml;
 }
 
+=head1 split_order
+
+Extracts the contents of a specific order from the combined Kamstrup KEM file.
+
+Takes as input the parsed content of the KEM file (meter details),
+the lowest meter number in the order,
+and the highest meter number in the order.
+
+Returns all meter information of the devices that match the filter criteria.
+=cut
 sub split_order {
 	my $meters = shift();
 	my $nr_min = shift();
 	my $nr_max = shift();
+	
 	my $response;
 	foreach my $meter ( @{ $meters->{'Meter'} } ) {
 		if ( $meter->{'MeterNo'} >= $nr_min && $meter->{'MeterNo'} <= $nr_max )
@@ -66,6 +95,14 @@ sub split_order {
 	return $response;
 }
 
+=head1 read_config
+
+Read a CSV configuration file containing the various sub orders.
+
+CSV needs to be separated with ';' and needs to contain the headers 'kamstrup_ordernr',  'kamstrup_serial_number_start',
+		'kamstrup_serial_number_end', 'number_of_devices' and 'internal_batch_number'.
+
+=cut
 sub read_config {
 	my $csv_file = shift();
 
@@ -102,17 +139,15 @@ sub read_config {
 	# Check all headers are present
 	foreach my $label (@reflist) {
 		if ( !defined $index->{$label} ) {
-			LOGDIE
-"Input configuration file does not contain a column with label $label! Quitting...";
+			LOGDIE "Input configuration file does not contain a column with label '$label'! Quitting...";
 		}
 	}
 
 	# Parse the file data based on the header information
 	while ( my $fields = $csv->getline($data) ) {
 		my $kamstrup_ordernr = $fields->[ $index->{'kamstrup_ordernr'} ];
-		my $kamstrup_start =
-		  $fields->[ $index->{'kamstrup_serial_number_start'} ];
-		my $kamstrup_stop = $fields->[ $index->{'kamstrup_serial_number_end'} ];
+		my $kamstrup_start =   $fields->[ $index->{'kamstrup_serial_number_start'} ];
+		my $kamstrup_stop =    $fields->[ $index->{'kamstrup_serial_number_end'} ];
 		my $internal_batchnr = $fields->[ $index->{'internal_batch_number'} ];
 		my $nr_of_devices    = $fields->[ $index->{'number_of_devices'} ];
 		if (   defined $kamstrup_ordernr
@@ -127,14 +162,18 @@ sub read_config {
 				'nr_of_devices'    => $nr_of_devices
 			};
 		} else {
-			WARN
-"Skipping line $. of input file because it does not contain the required fields";
+			WARN "Skipping line $. of input file because it does not contain the required fields";
 		}
 	}
 	close($data);
 	return $content;
 }
 
+=head1 parse_cml_string_to_data
+
+Convert the XML from the decoded file into a Perl datastructure that can be processed programmatorically.
+
+=cut
 sub parse_xml_string_to_data {
 	my $xml = shift();
 
@@ -149,7 +188,37 @@ sub parse_xml_string_to_data {
 	return $meters;
 }
 
-sub print_xml_to_file {
+=head1 write_xml_output
+
+Write the filtered XML to a file taking into account the required formatting.
+
+Takes as input the xml skeleton structure
+
+=cut
+sub write_xml_output {
+	my $skeleton = shift();	
+	
+	my $xml = XMLout( $skeleton, 'noattr' => 1, KeyAttr => ["MeterNo"] );
+
+	# Ensure we end up with the expected XML file structure
+	$xml =~ s/opt/MetersInOrder/g;  # Replace the default 'opt' by 'MetersInOrder'
+	$xml =~ s/\<orderid.+orderid\>\s+//;                # Strip orderid line
+	$xml =~ s/\<schemaVersion.+schemaVersion\>\s+//;    # Strip orderid line
+	$xml =~ s/\<MetersInOrder\>//; 						# Strip first line, we will replace it with a custom line to match the original XML output
+	$xml =	'<?xml version="1.0" encoding="utf-8"?>'
+		  . "\n<MetersInOrder orderid=\"$skeleton->{'orderid'}\" schemaVersion=\"2.0\">"
+		  . $xml;
+	
+	my $outputfile = $skeleton->{'orderid'} . ".xml";
+	my $fh = IO::File->new( "> " . $outputfile );
+
+	if ( defined $fh ) {
+		print $fh $xml;
+		$fh->close;
+		INFO "Wrote outputfile $outputfile";
+	} else {
+		LOGDIE "Could not write to outputfile: $!";
+	}
 	
 }
 1;
