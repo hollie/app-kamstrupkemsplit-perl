@@ -13,7 +13,25 @@ use MIME::Base64;
 use Exporter qw(import);
 our @EXPORT = qw(split_order read_config unzip_kem decode_kem parse_xml_string_to_data write_xml_output);
 
-=head1 unzip_kem
+=head1 DESCRIPTION
+
+This script takes as input a delivery file from Kamstrup (encrypted, compressed KEM file), unpacks it and splits the file into different
+decoded XML files that can be further processed.
+
+Minimal input to the script are the encryption key and the input file. If no further configuration file is passed then all information
+in the input file is written to the output file.
+
+A configuration file consists of a CSV file with `;` as delimeter and the following columns:
+
+C<kamstrup_ordernr;kamstrup_serial_number_start;kamstrup_serial_number_end;number_of_devices;internal_batch_number>
+
+The output file name will be [kamstrup_ordernr]_[internal_batch_number].
+
+Following functions are available in this package:
+
+=over 
+
+=item unzip_kem
 
 Extracts the KEM file from the archive file delivered by Kamstrup.
 Do not forget to delete the file after processing.
@@ -42,7 +60,7 @@ sub unzip_kem {
 	return $filename;
 }
 
-=head1 decode_kem
+=item decode_kem
 
 Decode an encrypted KEM file, requires the input filename and the encryption key.
 
@@ -70,7 +88,7 @@ sub decode_kem {
 	return $plain_xml;
 }
 
-=head1 split_order
+=item split_order
 
 Extracts the contents of a specific order from the combined Kamstrup KEM file.
 
@@ -95,7 +113,7 @@ sub split_order {
 	return $response;
 }
 
-=head1 read_config
+=item read_config
 
 Read a CSV configuration file containing the various sub orders.
 
@@ -169,7 +187,7 @@ sub read_config {
 	return $content;
 }
 
-=head1 parse_cml_string_to_data
+=item parse_cml_string_to_data
 
 Convert the XML from the decoded file into a Perl datastructure that can be processed programmatorically.
 
@@ -188,7 +206,7 @@ sub parse_xml_string_to_data {
 	return $meters;
 }
 
-=head1 write_xml_output
+=item write_xml_output
 
 Write the filtered XML to a file taking into account the required formatting.
 
@@ -222,3 +240,17 @@ sub write_xml_output {
 	
 }
 1;
+
+=back
+
+=head1 AUTHOR
+
+Lieven Hollevoet <lieven@quicksand.be>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2022 by Lieven Hollevoet.
+
+This is free software; you can redistribute it and/or modify it under the same terms as the Perl 5 programming language system itself.
+
+=cut

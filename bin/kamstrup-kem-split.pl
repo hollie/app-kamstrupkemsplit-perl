@@ -1,6 +1,7 @@
 #! /usr/bin/env perl
 # PODNAME: kamstrup-kem-split.pl
 # ABSTRACT: Split encrypted KEM file input from the Kamstrup backend into separate XML files with device information
+# VERSION	
 
 use Modern::Perl '2022';
 use App::KamstrupKemSplit;
