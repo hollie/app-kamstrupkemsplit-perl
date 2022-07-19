@@ -1,6 +1,7 @@
 #! /usr/bin/env perl
 # PODNAME: kamstrup-kem-split.pl
 # ABSTRACT: Split encrypted KEM file input from the Kamstrup backend into separate XML files with device information
+
 use Modern::Perl '2022';
 use App::KamstrupKemSplit;
 use Log::Log4perl qw(:easy);
@@ -73,28 +74,7 @@ foreach my $order ( sort keys %{$orders} ) {
 	my $skeleton;
 	$skeleton->{'orderid'} = $meters->{'orderid'} . "_" . "$order";
 	$skeleton->{'Meter'}   = $meterinfo;
-	my $xml = XMLout( $skeleton, 'noattr' => 1, KeyAttr => ["MeterNo"] );
-
-	# Ensure we end up with the expected XML file structure
-	$xml =~ s/opt/MetersInOrder/g;  # Replace the default 'opt' by 'MetersInOrder'
-	$xml =~ s/\<orderid.+orderid\>\s+//;                # Strip orderid line
-	$xml =~ s/\<schemaVersion.+schemaVersion\>\s+//;    # Strip orderid line
-	$xml =~ s/\<MetersInOrder\>//; 						# Strip first line, we will replace it with a custom line to match the original XML output
-	$xml =	'<?xml version="1.0" encoding="utf-8"?>'
-		  . "\n<MetersInOrder orderid=\"$skeleton->{'orderid'}\" schemaVersion=\"2.0\">"
-		  . $xml;
-	#print $xml;
-	
-	my $outputfile = $skeleton->{'orderid'} . ".xml";
-	my $fh = IO::File->new( "> " . $outputfile );
-
-	if ( defined $fh ) {
-		print $fh $xml;
-		$fh->close;
-		INFO "Wrote outputfile $outputfile";
-	} else {
-		LOGDIE "Could not write to outputfile: $!";
-	}
+	write_xml_output($skeleton);
 }
 
 exit(0);
