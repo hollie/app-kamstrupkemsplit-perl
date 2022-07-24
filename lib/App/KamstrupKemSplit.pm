@@ -1,6 +1,6 @@
 package App::KamstrupKemSplit;
 
-our $VERSION = '0.001'; # VERSION
+our $VERSION = '0.002'; # VERSION
 # ABSTRACT: Helper functions for the Kamstrup KEM file splitter application
 
 use Modern::Perl;
