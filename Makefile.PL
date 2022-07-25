@@ -18,13 +18,26 @@ my %WriteMakefileArgs = (
   ],
   "LICENSE" => "perl",
   "NAME" => "App::KamstrupKemSplit",
-  "PREREQ_PM" => {},
+  "PREREQ_PM" => {
+    "Archive::Zip" => 0,
+    "Crypt::Rijndael" => 0,
+    "Exporter" => 0,
+    "Getopt::Long" => 0,
+    "Log::Log4perl" => 0,
+    "MIME::Base64" => 0,
+    "Modern::Perl" => 0,
+    "Pod::Usage" => 0,
+    "Text::CSV" => 0,
+    "XML::Simple" => 0
+  },
   "TEST_REQUIRES" => {
     "ExtUtils::MakeMaker" => 0,
     "File::Spec" => 0,
-    "Test::More" => 0
+    "Test::More" => 0,
+    "strict" => 0,
+    "warnings" => 0
   },
-  "VERSION" => "0.002",
+  "VERSION" => "0.003",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -32,9 +45,21 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "Archive::Zip" => 0,
+  "Crypt::Rijndael" => 0,
+  "Exporter" => 0,
   "ExtUtils::MakeMaker" => 0,
   "File::Spec" => 0,
-  "Test::More" => 0
+  "Getopt::Long" => 0,
+  "Log::Log4perl" => 0,
+  "MIME::Base64" => 0,
+  "Modern::Perl" => 0,
+  "Pod::Usage" => 0,
+  "Test::More" => 0,
+  "Text::CSV" => 0,
+  "XML::Simple" => 0,
+  "strict" => 0,
+  "warnings" => 0
 );
 
 
