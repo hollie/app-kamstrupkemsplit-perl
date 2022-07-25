@@ -22,12 +22,16 @@ GetOptions(
 	'key=s'     => \$key,
 	'config=s'  => \$config
 ) or pod2usage(2);
+
+pod2usage(1) if (defined $help || !defined $ARGV[0]);
+
 if ($verbose) {
 	Log::Log4perl->easy_init($DEBUG);
 	INFO "Starting in verbose mode";
 } else {
 	Log::Log4perl->easy_init($INFO);
 }
+
 
 # Open the config file
 my $orders;
@@ -86,7 +90,7 @@ kamstrup-kem-split - Splits an encrypted delivery file from Kamstrup into separa
 
 =head1 SYNOPSIS
 
-    ./kamstrup-kem-split.pl --key=<key> [--config=<configfile>] C<inputfile_from_backend>
+    ./kamstrup-kem-split.pl --key=<key> [--config=<configfile>] inputfile_from_backend
 
 =head1 DESCRIPTION
 
