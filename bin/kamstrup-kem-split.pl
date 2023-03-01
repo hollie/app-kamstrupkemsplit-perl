@@ -54,7 +54,7 @@ if ( !defined $orders ) {
 	$orders->{'fulldump'} = {
 		'kamstrup_ordernr' => -1,
 		'kamstrup_start'   => 0,
-		'kamstrup_stop'	   => 99999999,
+		'kamstrup_stop'	   => -1,
 		'nr_of_devices'	   => -1
 	};
 	

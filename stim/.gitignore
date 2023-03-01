@@ -1,4 +1,4 @@
 config.csv
-config2.csv
+config*.csv
 input.zip.kem
-input2.zip.kem
+input*.zip.kem
