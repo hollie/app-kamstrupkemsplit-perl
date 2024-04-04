@@ -9,7 +9,7 @@ use Log::Log4perl qw(:easy);
 use XML::Simple;
 use Getopt::Long;
 use Pod::Usage;
-my ( $key, $verbose, $help, $man, $config, $kemformat );
+my ( $key, $verbose, $help, $man, $config, $kemformat, $show_version );
 
 # Default values
 $verbose = 0;
@@ -22,10 +22,11 @@ GetOptions(
 	'v|verbose' => \$verbose,
 	'key=s'     => \$key,
 	'config=s'  => \$config,
-	'kem=s'     => \$kemformat
+	'kem=s'     => \$kemformat,
+	'version'   => \$show_version
 ) or pod2usage(2);
 
-pod2usage(1) if (defined $help || !defined $ARGV[0]);
+pod2usage(1) if (defined $help);
 
 if ($verbose) {
 	Log::Log4perl->easy_init($DEBUG);
@@ -34,6 +35,13 @@ if ($verbose) {
 	Log::Log4perl->easy_init($INFO);
 }
 
+if (defined $show_version) {
+	my $version = $main::VERSION // 'dev';
+	INFO "This is kamstrup-kem-split version " . $version;
+	exit(0);
+}
+
+pod2usage(1) if (!defined $ARGV[0]);
 
 # Open the config file
 my $orders;
